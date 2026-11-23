@@ -1,0 +1,359 @@
+\documentclass[11pt]{amsart}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[T1]{fontenc}
+\usepackage{booktabs}
+\usepackage[margin=1.1in]{geometry}
+\raggedbottom
+\usepackage[hidelinks]{hyperref}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+
+\newcommand{\lc}{\lambda_c(\Delta)}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\nsc}[1]{\textnormal{\textsc{#1}}}
+
+\title[Perfect marginal sampling for the hard-core model]{Constant-time perfect marginal sampling for the hard-core model below the tree threshold}
+\author{Yitzchak Shmalo}
+\address{Einstein Institute of Mathematics, The Hebrew University of Jerusalem,\newline Givat Ram, Jerusalem, Israel}
+\subjclass[2020]{Primary 68W20; Secondary 82B20, 68Q87}
+\keywords{hard-core model, perfect sampling, marginal sampling, correlation decay, approximate counting}
+\date{}
+
+\begin{document}
+
+\begin{abstract}
+For every fixed $\Delta\ge 3$ and every fixed rational activity $\lambda$ below the uniqueness threshold $\lc$ of the infinite $\Delta$-regular tree we give an algorithm that, on any finite graph of maximum degree $\Delta$ with any feasible pinning, outputs a vertex spin with exactly its conditional hard-core marginal law, using $O_{\Delta,\lambda}(1)$ expected time. The algorithm runs a branching recursion on the self-avoiding-walk tree in which each node is resolved by an exact rejection step between the endpoints of a short interval around an approximate value of its ratio. The Li--Lu--Yin potential makes the expected number of recursive calls of each node less than one. Combined with the reduction of Chen, Chen, Liu and Zhang, this gives a randomized approximation of the hard-core partition function to any fixed relative accuracy in expected time $n^{2-x}$, up to factors polylogarithmic in $n$, for some $x=x(\Delta,\lambda)>0$ and every such $\lambda$.
+\end{abstract}
+
+\maketitle
+
+\section{Introduction}\label{sec:intro}
+
+The hard-core model with activity $\lambda>0$ on a finite graph $G$ is the probability measure on the independent sets of $G$ in which an independent set $\sigma$ has probability proportional to $\lambda^{|\sigma|}$. On graphs of maximum degree $\Delta\ge3$ the relevant threshold is $\lc=(\Delta-1)^{\Delta-1}/(\Delta-2)^{\Delta}$, the uniqueness threshold of the infinite $\Delta$-regular tree. Weitz~\cite[Corollary~2.8]{W06} approximated the partition function deterministically in polynomial time for every $\lambda<\lc$, by computing marginals on a tree of self-avoiding walks; we use the same tree. Li, Lu and Yin found a potential function \cite[Section~3]{LLY} in which the tree recursion of two-spin systems contracts up to uniqueness \cite[Definition~7 and Lemma~12]{LLY}. Section~\ref{sec:contract} uses it for the hard-core model.
+
+As Anand, Feng, Freifeld, Guo and Wang observe \cite[Section~1]{AFFGW}, Weitz's algorithm already approximates the partition function of the hard-core model in time subquadratic in the number $n$ of vertices when $\lambda=o(\Delta^{-2})$ as $\Delta\to\infty$; they obtain subquadratic counting when $\lambda=o(\Delta^{-1.5})$ \cite[Theorem~1.1 and Remark~1.2]{AFFGW}. Chen, Chen, Liu and Zhang~\cite{CCLZ} obtain subquadratic counting for the hard-core model when $\lambda<1/(\Delta-1)$ \cite[Theorem~1.1]{CCLZ}, and they ask whether subquadratic counting is possible all the way up to $\lc$. They also reduce the question to sampling a single spin \cite[Theorem~1.4]{CCLZ}. If the conditional marginal of a vertex, under any pinning, can be sampled exactly in expected time $O(1)$ on graphs of maximum degree $\Delta$, then the partition function has a randomized approximation scheme whose expected running time is subquadratic in $n$.
+
+Anand and Jerrum~\cite{AJ22} gave a perfect marginal sampler of this kind. Comparing its recursion with a branching process, they show informally that its expected running time is at most $(1+\lambda)/(1-(\Delta-1)\lambda)$ on every graph of maximum degree $\Delta$ when $\lambda<1/(\Delta-1)$ \cite[Section~3.1]{AJ22}; their general theorem, applied to the same recursion, gives constant expected time for $\lambda<1/(2\Delta-1)$ \cite[Section~6.1]{AJ22}. Through Weitz's strong spatial mixing they also obtain constant expected time for every $\lambda<\lc$ on graphs of maximum degree $\Delta$ with subexponential growth \cite{AJ22}. On graphs of subexponential neighbourhood growth Feng, Guo and Yin~\cite[Theorem~2.4]{FGY} sample the whole configuration perfectly in expected linear time for permissive spin systems, the hard-core model among them, with strong spatial mixing at an exponential rate. Chen, Chen, Liu and Zhang remark that their reduction stays subquadratic, up to polylogarithmic factors, as long as the sampler's expected time on an instance is of smaller order than a certain positive power of the instance's size, fixed by $\Delta$ and $\lambda$, and that they are not aware of a perfect marginal sampler that takes this advantage to reach a better regime \cite[Remark~1.5]{CCLZ}.
+
+Our main result is such a sampler for every rational $\lambda<\lc$, on every graph of maximum degree $\Delta$.
+
+\begin{theorem}\label{thm:main}
+Fix an integer $\Delta\ge 3$ and a rational $0<\lambda<\lc$. There is a randomized algorithm which, given a graph $G$ of maximum degree $\Delta$ through local adjacency access, a feasible partial assignment $\tau$ of its vertices and a vertex $v$, outputs $X_v\in\{0,1\}$ distributed exactly as the spin of $v$ under the hard-core measure on $G$ with activity $\lambda$ conditioned on $\tau$. Its expected number of word operations and oracle queries is bounded by a constant depending only on $\Delta$ and $\lambda$.
+\end{theorem}
+
+\begin{corollary}\label{cor:count}
+Under the hypotheses of Theorem~\ref{thm:main}, fix $0<\delta<1$ with $\lambda\le(1-4\delta)\lc$. The hard-core partition function of an $n$-vertex graph of maximum degree $\Delta$ has a randomized approximation scheme with expected running time $\tilde O\bigl(n^{2-x}\varepsilon^{-2(1-x)}\bigr)$, where $x=\log(1/(1-\delta))/\log(\Delta/(1-\delta))$.
+\end{corollary}
+
+So for every fixed rational $\lambda<\lc$ the hard-core partition function on graphs of maximum degree $\Delta$ can be approximated in expected time subquadratic in $n$; here $\tilde O$ hides factors polylogarithmic in $n$. The case $\lambda=\lc$ remains open, and our method does not reach it, since the contraction bound of Lemma~\ref{lem:contract} fails there.
+
+Like Weitz's algorithm, ours works on the self-avoiding-walk tree, but it never computes a ratio exactly. Each free node $\nu$ of the tree carries a short interval $I_\nu=[l_\nu,u_\nu]$ that contains its ratio $R_\nu$, centred at a cheap approximation of $R_\nu$, of width $2\eta s_\nu$, where $\eta>0$ is a small parameter and $s_\nu$ is close to the weight of the Li--Lu--Yin potential at the centre. A procedure $\nsc{Coin}(\nu)$ returns $1$ with probability exactly $(R_\nu-l_\nu)/(u_\nu-l_\nu)$. The position of the parent's ratio in its interval is a quotient of two polynomials that are multi-affine in the probabilities returned at the children (Section~\ref{sec:race}), and an exact rejection step (Lemma~\ref{lem:race}) realizes $\nsc{Coin}(\nu)$ from calls to $\nsc{Coin}$ at some of the children. Writing $\E$ for expectation, the expected number of these calls is, up to an error of order $\eta$, the derivative of the recursion measured in that potential:
+\[
+\E\bigl[\#\{\text{calls made directly by }\nsc{Coin}(\nu)\}\bigr]\;\le\;\alpha_d(c_{\nu_1},\dots,c_{\nu_d})+O(\eta)\;\le\;\rho+O(\eta),
+\]
+where $c_{\nu_i}$ are the centres at the free children, $\alpha_d$ is the derivative of Section~\ref{sec:contract} and $\rho<1$ is the constant of Lemma~\ref{lem:contract} (see Lemmas~\ref{lem:tables} and~\ref{lem:contain}). So the calls form a subcritical branching process for every $\lambda<\lc$. In the recursion of Anand and Jerrum \cite[Section~3.1]{AJ22} a call recurses on its at most $\Delta$ neighbours with probability $\lambda/(1+\lambda)$, so it makes at most $\Delta\lambda/(1+\lambda)$ calls in expectation, a bound below one exactly when $\lambda<1/(\Delta-1)$.
+
+The rest of the paper is organized as follows.
+
+\begin{center}
+\begin{tabular}{@{}lp{0.47\textwidth}l@{}}
+\toprule
+Section & What it proves & What it uses\\
+\midrule
+\ref{sec:prelim} & the model, the self-avoiding-walk tree, the machine model & \cite[Theorem~3.1]{W06}\\
+\ref{sec:contract} & Lemma~\ref{lem:contract}: contraction in the Li--Lu--Yin potential; Lemma~\ref{lem:trunc}: truncation & \cite{LLY}\\
+\ref{sec:race} & Lemma~\ref{lem:race}: the exact rejection step; Lemmas~\ref{lem:tables} and~\ref{lem:contain}: intervals and offspring & Section~\ref{sec:contract}\\
+\ref{sec:sampler} & the sampler and Theorem~\ref{thm:main} & Sections~\ref{sec:prelim}--\ref{sec:race}\\
+\ref{sec:count} & Corollary~\ref{cor:count} & Theorem~\ref{thm:main}, \cite[Theorem~1.4]{CCLZ}\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Preliminaries}\label{sec:prelim}
+
+\paragraph{The hard-core model.} Let $G=(V,E)$ be a finite graph of maximum degree $\Delta$ and $\lambda>0$. The hard-core measure gives an independent set $\sigma\subseteq V$ probability proportional to $\lambda^{|\sigma|}$; we identify $\sigma$ with its indicator in $\{0,1\}^V$. A partial assignment $\tau\colon\Lambda\to\{0,1\}$, $\Lambda\subseteq V$, is feasible if some independent set agrees with it, and $\mu^\tau$ denotes the measure conditioned on agreement with $\tau$. For $v\notin\Lambda$ put
+\[
+R_v=\frac{\mu^\tau(\sigma_v=1)}{\mu^\tau(\sigma_v=0)}\in[0,\infty),
+\qquad \mu^\tau(\sigma_v=1)=\frac{R_v}{1+R_v}.
+\]
+
+\paragraph{The tree recursion.} On a finite rooted tree with some nodes pinned, the ratio at an unpinned node $\nu$ whose children carry ratios $R_1,\dots,R_k$ (computed in their subtrees) is $R_\nu=\lambda\prod_i(1+R_i)^{-1}$, where a child pinned to $1$ contributes the factor $0$ and a child pinned to $0$ the factor $1$. On a graph with cycles, $R_v$ equals the root ratio of the following tree $T$ of self-avoiding walks from $v$, introduced by Weitz~\cite{W06}.
+Fix for each vertex an order of its neighbours. The nodes of $T$ are walks $v=w_0,w_1,\dots,w_k$ in $G$ with $w_0,\dots,w_k$ distinct, and the children of such a walk are its extensions by a neighbour $y\ne w_{k-1}$ of $w_k$. If $y$ is pinned by $\tau$, the child is a leaf with the pinned spin. If $y=w_i$ for some $i<k-1$, the walk closes a cycle at $w_i$, and the child is a leaf pinned to $1$ when $w_k$ comes after $w_{i+1}$ in the order of the neighbours of $w_i$, and to $0$ otherwise. Every other extension is an unpinned node whose children are formed in the same way. A node at depth $j$ is a self-avoiding walk of length $j$ from $v$, or a closing step appended to one of length $j-1$. The root has at most $\Delta$ children and every other node at most $\Delta-1$. We write $T$ for this tree; it is finite. The identity between $R_v$ and the root ratio of $T$, under any pinning copied to every copy of a pinned vertex, is \cite[Theorem~3.1]{W06}.
+
+A node of $T$ is \emph{settled} if it is pinned or has a child pinned to $1$; its ratio is then known ($0$ in the second case). Every other node is \emph{free}. The children of a free node are pinned to $0$, settled with ratio $0$, or free, and only the free ones affect its ratio: if $\nu$ is free with free children $\nu_1,\dots,\nu_d$, then
+\[
+R_\nu=F(R_{\nu_1},\dots,R_{\nu_d}),\qquad F(r_1,\dots,r_d)=\lambda\prod_{i=1}^d\frac1{1+r_i},
+\]
+and $R_\nu=\lambda$ when $d=0$. Deciding whether a node is free and listing its free children inspects two levels below it.
+
+\paragraph{Machine model.} The parameters $\Delta$ and a rational $\lambda$ are fixed. The graph is given by an oracle returning the $i$-th neighbour of a vertex (or a symbol for none), and the pinning by an oracle returning $\tau(u)$ or a symbol for unpinned. The neighbour-list oracle of \cite[Definition~2.2]{CCLZ} and the $i$-th-neighbour oracle simulate each other at cost $O(\Delta)$ per query, so the bounds below hold in either model. Word operations and oracle queries cost one unit each. The algorithm explores $T$ depth-first and keeps the walk of the current node on a stack, so moving to a child or back to the parent costs $O(1)$; listing the children of a node at depth $j$, and deciding which leaves are pinned, compares each of at most $\Delta$ candidates against the walk and costs $O(j+1)$. All rational numbers the algorithm manipulates other than vertex names come from a finite set fixed by $\Delta$, $\lambda$ and the choice of $\eta$ below, so each arithmetic step on them costs $O(1)$.
+
+\section{Contraction in the Li--Lu--Yin potential}\label{sec:contract}
+For the hard-core model ($\beta=0$, $\gamma=1$) the update at a node with $d$ free children of ratios $r_1,\dots,r_d$ is
+\[
+F(r_1,\dots,r_d)=\lambda\prod_{i=1}^d\frac{1}{1+r_i}.
+\]
+Li, Lu and Yin \cite{LLY} measure the error in the coordinate whose derivative is $\Phi(r)=1/\sqrt{r(1+r)}$. Write $w=1/\Phi$. The quantity to control is
+\[
+\alpha_d(r_1,\dots,r_d)=\sum_{i=1}^d\frac{|\partial_iF|\,w(r_i)}{w(F)}
+=\sqrt{\frac{F}{1+F}}\;\sum_{i=1}^d\sqrt{\frac{r_i}{1+r_i}} .
+\]
+
+\begin{lemma}\label{lem:contract}
+Let $\Delta\ge3$ and $0<\lambda<\lc$. There is $\rho=\rho(\Delta,\lambda)<1$ with $\alpha_d(r_1,\dots,r_d)\le\rho$ for every $1\le d\le\Delta-1$ and all $r_1,\dots,r_d\in[0,\infty)$.
+\end{lemma}
+
+\begin{proof}
+Put $x_i=r_i/(1+r_i)\in[0,1)$ and let $x$ be their mean. Then $F=\lambda\prod(1-x_i)\le\lambda(1-x)^d$ by the inequality of arithmetic and geometric means, and $\sum\sqrt{x_i}\le d\sqrt{x}$ by concavity of the square root. Since $F/(1+F)$ is increasing in $F$,
+\[
+\alpha_d^2\le\frac{d^2x\,\lambda(1-x)^d}{1+\lambda(1-x)^d}.
+\]
+The right side is less than one exactly when $\lambda(d^2x-1)(1-x)^d<1$. For $d\ge2$ the function $(d^2x-1)(1-x)^d$ on $[0,1]$ has derivative $d(d+1)(1-x)^{d-1}(1-dx)$, which is positive for $x<1/d$ and negative for $x>1/d$, so its maximum is $(d-1)(1-1/d)^d=(d-1)^{d+1}/d^d$, attained at $x=1/d$. Its reciprocal $\lambda_c^{(d)}=d^d/(d-1)^{d+1}$ is decreasing in $d$, since $\lambda_c^{(d)}=(d/(d-1))^d\cdot(d-1)^{-1}$ and both factors decrease. Hence $\lambda<\lc=\lambda_c^{(\Delta-1)}\le\lambda_c^{(d)}$ for $2\le d\le\Delta-1$. For $d=1$ the bound reads $\alpha_1^2\le x\lambda(1-x)/(1+\lambda(1-x))<1$ for every $\lambda$. The bound on $\alpha_d^2$ is a continuous function of $x\in[0,1]$, so for each of the finitely many $d$ its maximum is less than one, and $\rho$ is the largest of these maxima.
+\end{proof}
+
+At $\lambda=\lc$ and $d=\Delta-1$, equal children with $x_i=1/d$ give $\alpha_d=1$, so the lemma fails at the endpoint.
+
+\paragraph{Compact range.} The ratio of every free node lies in $[m,M]$ with $M=\lambda$ and $m=\lambda(1+\lambda)^{-\Delta}$, since each factor $1/(1+R_i)$ lies in $[1/(1+\lambda),1]$. On $[m/2,2M]$ the weight $w$ is smooth, positive and bounded above and below. Let $\psi(r)=\int_0^r\Phi$, which is finite since $\Phi(r)\le r^{-1/2}$. Joining two input vectors $r,r'\in[0,\infty)^d$ by the path that is linear in $\psi$-coordinates and integrating the bound of Lemma~\ref{lem:contract} along it gives
+\[
+|\psi(F(r))-\psi(F(r'))|\le\rho\max_i|\psi(r_i)-\psi(r'_i)|
+\]
+for $1\le d\le\Delta-1$.
+
+\begin{lemma}\label{lem:trunc}
+Let $\nu$ be a free node other than the root and $h\ge0$. Compute a value $R'_\nu$ by applying the recursion in the subtree of $\nu$ down to depth $h$ below $\nu$, giving each free node at depth $h$ the value $m$ and each settled node its true value. Then $|R'_\nu-R_\nu|\le D\rho^h$ with $D=w(M)(\psi(M)-\psi(m))$.
+\end{lemma}
+
+\begin{proof}
+Free nodes at relative depth $h$ have $|\psi(R')-\psi(R)|\le\psi(M)-\psi(m)$, since both values lie in $[m,M]$. Free nodes with no free children are exact. A free node at relative depth $k<h$ with $d\ge1$ free children, all of them non-root, inherits $|\psi(R')-\psi(R)|\le\rho^{h-k}(\psi(M)-\psi(m))$ from the displayed contraction, by induction on $h-k$. All values computed lie in $[m,M]$, where $(\psi^{-1})'=w\le w(M)$.
+\end{proof}
+
+\section{An exact rejection step for a multi-affine update}\label{sec:race}
+
+For $S\subseteq[d]=\{1,\dots,d\}$ and $p\in[0,1]^d$ write $p^S=\prod_{i\in S}p_i$, with $p^\emptyset=1$. A polynomial is multi-affine if it is affine in each variable separately, that is, a combination of the monomials $p^S$. For a real $z$ put $z^+=\max(z,0)$ and $z^-=\max(-z,0)$.
+
+\begin{lemma}\label{lem:race}
+Let $B(p)=\sum_Sb_Sp^S$ and $C(p)=\sum_Sc_Sp^S$ be multi-affine with rational coefficients, and suppose that $H=B+C$ is positive on $[0,1]^d$ and that
+\[
+b^*=b_\emptyset-\sum_{S\ne\emptyset}b_S^-\ge0,\qquad c^*=c_\emptyset-\sum_{S\ne\emptyset}c_S^-\ge0 .
+\]
+Put $k_S=\max(b_S^++c_S^+,\,b_S^-+c_S^-)$ for $S\ne\emptyset$ and $K=b^*+c^*+\sum_{S\ne\emptyset}k_S$. Suppose that procedures $X_1,\dots,X_d$ are available, each call to $X_i$ returning a bit of mean $p_i$ independent of everything before the call. Repeat the following round until it returns.
+\begin{enumerate}
+\item Choose \nsc{one} with probability $b^*/K$, \nsc{zero} with probability $c^*/K$, or a nonempty $S$ with probability $k_S/K$.
+\item On \nsc{one} return $1$; on \nsc{zero} return $0$.
+\item On $S$, call $X_i$ once for each $i\in S$ and let $A$ be the product of the bits. If $A=1$, return $1$ with probability $b_S^+/k_S$ and $0$ with probability $c_S^+/k_S$; if $A=0$, return $1$ with probability $b_S^-/k_S$ and $0$ with probability $c_S^-/k_S$; otherwise end the round.
+\end{enumerate}
+The procedure returns $1$ with probability $B(p)/H(p)$, and the expected number of calls it makes to $X_1,\dots,X_d$ is
+\[
+\frac1{H(p)}\sum_{S\ne\emptyset}|S|\,k_S .
+\]
+\end{lemma}
+
+\begin{proof}
+The probabilities in step 3 are well defined because $b_S^\pm+c_S^\pm\le k_S$. Given the past, a round that chooses $S$ has $\Pr(A=1)=p^S$, since the calls are independent. Using $b_S^+p^S+b_S^-(1-p^S)=b_S^-+b_Sp^S$, a round returns $1$ with probability
+\[
+\frac1K\Bigl(b^*+\sum_{S\ne\emptyset}\bigl(b_S^-+b_Sp^S\bigr)\Bigr)=\frac{B(p)}K,
+\]
+and in the same way it returns $0$ with probability $C(p)/K$. The rounds are independent and identically distributed, and each returns with probability $H(p)/K>0$. So the procedure stops almost surely and returns $1$ with probability $B(p)/H(p)$. A round makes on average $\sum_{S\ne\emptyset}|S|k_S/K$ calls, and the number of rounds is a stopping time with mean $K/H(p)$, so Wald's identity gives the expected number of calls.
+\end{proof}
+
+In step 3 a single call pattern serves both outcomes. A first-order coefficient that enters $B$ and $C$ with opposite signs is paid once, through the maximum in $k_S$, instead of once for each polynomial.
+
+\subsection*{The hard-core update}
+
+Let $\nu$ be a free node with free children $\nu_1,\dots,\nu_d$, $d\ge0$. Suppose rational intervals $I_\nu=[l_\nu,u_\nu]$ and $I_i=[l_i,u_i]$ of lengths $W_\nu=u_\nu-l_\nu>0$ and $W_i=u_i-l_i>0$ are given, with $l_\nu>0$ and $l_i>0$. For $p\in[0,1]^d$ let $y_i=l_i+W_ip_i$, and put
+\[
+H(p)=\prod_{i=1}^d(1+y_i),\qquad B(p)=\frac{\lambda-l_\nu H(p)}{W_\nu},\qquad C(p)=\frac{u_\nu H(p)-\lambda}{W_\nu}.
+\]
+Then $B+C=H\ge1$ and $B(p)/H(p)=(F(y)-l_\nu)/W_\nu$. If the children's ratios lie in their intervals and $p_i=(R_{\nu_i}-l_i)/W_i$, this is the position $(R_\nu-l_\nu)/W_\nu$ of the parent's ratio in its interval.
+
+\begin{lemma}\label{lem:tables}
+In this situation, for $S\ne\emptyset$,
+\[
+k_S=\frac{u_\nu}{W_\nu}\prod_{j=1}^d(1+l_j)\prod_{i\in S}\frac{W_i}{1+l_i},
+\]
+and
+\[
+b^*=\frac{\prod_i(1+u_i)}{W_\nu}\bigl(F(u_1,\dots,u_d)-l_\nu\bigr),\qquad
+c^*=\frac{\prod_i(1+l_i)}{W_\nu}\bigl(u_\nu-F(l_1,\dots,l_d)\bigr),
+\]
+and for every $p\in[0,1]^d$
+\begin{equation}\label{eq:offspring}
+\frac1{H(p)}\sum_{S\ne\emptyset}|S|k_S=\frac{u_\nu}{W_\nu}\prod_{j=1}^d\frac{1+u_j}{1+y_j}\;\sum_{i=1}^d\frac{W_i}{1+u_i}.
+\end{equation}
+In particular $b^*,c^*\ge0$ if and only if $F(I_1\times\dots\times I_d)\subseteq I_\nu$.
+\end{lemma}
+
+\begin{proof}
+Put $L=\prod_j(1+l_j)$ and $t_i=W_i/(1+l_i)$. Then $1+y_i=(1+l_i)(1+t_ip_i)$ and $H(p)=L\sum_St^Sp^S$ with $t^S=\prod_{i\in S}t_i$. Hence $b_S=-l_\nu Lt^S/W_\nu<0$ and $c_S=u_\nu Lt^S/W_\nu>0$ for $S\ne\emptyset$, so $k_S=\max(c_S,-b_S)=u_\nu Lt^S/W_\nu$. Since $L\prod_i(1+t_i)=\prod_i(1+u_i)$,
+\[
+b^*=\frac{\lambda-l_\nu L}{W_\nu}-\frac{l_\nu L}{W_\nu}\Bigl(\prod_i(1+t_i)-1\Bigr)=\frac{\lambda-l_\nu\prod_i(1+u_i)}{W_\nu},
+\]
+which is the stated formula because $F(u_1,\dots,u_d)=\lambda/\prod_i(1+u_i)$. All $c_S$ with $S\ne\emptyset$ are positive, so $c^*=c_\emptyset=(u_\nu L-\lambda)/W_\nu$. Differentiating $\prod_i(1+t_iz)$ at $z=1$ gives $\sum_S|S|t^S=\prod_j(1+t_j)\sum_it_i/(1+t_i)$, and $t_i/(1+t_i)=W_i/(1+u_i)$; dividing by $H(p)=\prod_j(1+y_j)$ gives \eqref{eq:offspring}. Finally $F$ decreases in each coordinate, so the image of the box is $[F(u_1,\dots,u_d),F(l_1,\dots,l_d)]$.
+\end{proof}
+
+\subsection*{Intervals from approximate centres}
+
+Fix a rational $\eta>0$. For every free node $\nu$ other than the root, the algorithm computes rationals $c_\nu$ and $s_\nu$, depending only on $\nu$ (so that recomputing them gives the same values), with
+\begin{equation}\label{eq:centre}
+|c_\nu-R_\nu|\le\eta^2,\qquad |s_\nu-w(c_\nu)|\le\eta,
+\end{equation}
+and sets $I_\nu=[c_\nu-\eta s_\nu,\;c_\nu+\eta s_\nu]$, so $W_\nu=2\eta s_\nu$. Section~\ref{sec:sampler} shows how. All constants below depend only on $\Delta$ and $\lambda$.
+
+\begin{lemma}\label{lem:contain}
+There are $\eta_0>0$ and $q<1$ such that for $0<\eta\le\eta_0$ the following holds whenever \eqref{eq:centre} holds at a free non-root node $\nu$ and at its free children $\nu_1,\dots,\nu_d$: $R_\nu\in I_\nu$, $l_\nu>0$, $F(I_1\times\dots\times I_d)\subseteq I_\nu$, and
+\[
+\frac{u_\nu}{W_\nu}\prod_{j=1}^d\frac{1+u_j}{1+y_j}\;\sum_{i=1}^d\frac{W_i}{1+u_i}\le q\qquad\text{for all }y\in I_1\times\dots\times I_d .
+\]
+\end{lemma}
+
+\begin{proof}
+Write $O(\cdot)$ for a bound with a constant depending only on $\Delta$ and $\lambda$. For small $\eta$, \eqref{eq:centre} and $R_\nu\in[m,M]$ give $c_\nu\in[m-\eta^2,M+\eta^2]$ and $s_\nu\in[w(m)/2,2w(M)]$, so $I_\nu\subseteq[m/2,2M]$, $l_\nu>0$, and $R_\nu\in I_\nu$ because $\eta^2<\eta s_\nu$. The same holds at the children. If $d=0$ then $F\equiv\lambda=R_\nu\in I_\nu$ and the sum is empty, so assume $1\le d\le\Delta-1$ and write $c=(c_{\nu_1},\dots,c_{\nu_d})$.
+
+Since $F$ is Lipschitz on $[m/2,2M]^d$ and $R_\nu=F(R_{\nu_1},\dots,R_{\nu_d})$, we get $|F(c)-c_\nu|=O(\eta^2)$. Let $g(r)=r/w(r)=\sqrt{r/(1+r)}$, which is Lipschitz on $[m/2,2M]$, and let
+\[
+\theta=\frac{F(c)}{s_\nu}\sum_{i=1}^d\frac{s_{\nu_i}}{1+c_{\nu_i}} .
+\]
+Replacing $s_\nu$ by $w(c_\nu)$, then $c_\nu$ by $F(c)$, then $s_{\nu_i}$ by $w(c_{\nu_i})$ changes $\theta$ by $O(\eta)$ and gives
+\[
+g(F(c))\sum_{i=1}^d\frac{w(c_{\nu_i})}{1+c_{\nu_i}}=\alpha_d(c).
+\]
+By Lemma~\ref{lem:contract}, $\theta\le\rho+O(\eta)$.
+
+\emph{Containment.} Put $\varsigma=\sum_is_{\nu_i}/(1+c_{\nu_i})=O(1)$. Since $\prod_i(1+a_i)\le e^{\sum a_i}$ for $a_i\ge0$ and $\prod_i(1-a_i)\ge1-\sum_ia_i$ for $a_i\in[0,1]$,
+\[
+F(u_{\nu_1},\dots,u_{\nu_d})\ge F(c)\,e^{-\eta\varsigma}\ge F(c)(1-\eta\varsigma),\qquad
+F(l_{\nu_1},\dots,l_{\nu_d})\le\frac{F(c)}{1-\eta\varsigma}=F(c)(1+\eta\varsigma)+O(\eta^2).
+\]
+Hence
+\[
+F(u_{\nu_1},\dots,u_{\nu_d})-l_\nu\ge\eta s_\nu-\eta F(c)\varsigma-|F(c)-c_\nu|=\eta s_\nu(1-\theta)-O(\eta^2)\ge\eta s_\nu(1-\rho)-O(\eta^2),
+\]
+and in the same way $u_\nu-F(l_{\nu_1},\dots,l_{\nu_d})\ge\eta s_\nu(1-\rho)-O(\eta^2)$. Both are positive for small $\eta$, and $F$ is monotone in each coordinate, so $F(I_1\times\dots\times I_d)\subseteq I_\nu$.
+
+\emph{Offspring.} For $y$ in the box, $y_j\ge l_{\nu_j}$, so $\prod_j(1+u_{\nu_j})/(1+y_j)\le\prod_j(1+W_{\nu_j})\le e^{\sum_jW_{\nu_j}}=1+O(\eta)$. Also $u_{\nu_i}\ge c_{\nu_i}$, so
+\[
+\frac{u_\nu}{W_\nu}\sum_i\frac{W_{\nu_i}}{1+u_{\nu_i}}\le\frac{c_\nu+\eta s_\nu}{s_\nu}\,\varsigma=\theta+\frac{c_\nu-F(c)}{s_\nu}\varsigma+\eta\varsigma=\theta+O(\eta).
+\]
+So the quantity in the lemma is at most $\rho+O(\eta)$. Choose $\eta_0$ so small that for $0<\eta\le\eta_0$ every estimate of this proof stated for small $\eta$ holds (among them $\eta\varsigma<1$), the two containment margins $\eta s_\nu(1-\rho)-O(\eta^2)$ are positive, and the bound $\rho+O(\eta)$ on the quantity in the lemma is at most $(1+\rho)/2$; put $q=(1+\rho)/2$.
+\end{proof}
+
+\section{The sampler}\label{sec:sampler}
+
+Fix a rational $\eta\le\eta_0$ from Lemma~\ref{lem:contain}, and the least $h$ with $D\rho^h\le\eta^2/2$ (Lemma~\ref{lem:trunc}).
+
+\paragraph{Centres.} For a free non-root node $\nu$, let $R'_\nu$ be the truncated value of Lemma~\ref{lem:trunc} at depth $h$, computed exactly in rational arithmetic, and let $c_\nu$ be the nearest point of $(\eta^2/2)\mathbb Z$ to $R'_\nu$ (ties broken downwards). Then $|c_\nu-R_\nu|\le\eta^2/2+\eta^2/4$. Only finitely many points of this grid lie in $[m/2,2M]$; fix once and for all a table $\sigma$ on them with rational values and $|\sigma(c)-w(c)|\le\eta$, and set $s_\nu=\sigma(c_\nu)$. This gives \eqref{eq:centre}. Computing $R'_\nu$ inspects the at most $\Delta^{h+2}$ nodes within depth $h+2$ below $\nu$ (two extra levels decide which of them are free), and the numbers involved range over a finite set of rationals because $h$, $\lambda$ and $m$ are fixed.
+
+\paragraph{Coins.} For a free non-root node $\nu$, the procedure $\nsc{Coin}(\nu)$ lists the free children $\nu_1,\dots,\nu_d$ of $\nu$, computes $I_\nu$ and $I_{\nu_1},\dots,I_{\nu_d}$, forms the coefficients of Lemma~\ref{lem:tables}, and runs the race of Lemma~\ref{lem:race} with $X_i=\nsc{Coin}(\nu_i)$. Each call to $\nsc{Coin}(\nu_i)$ uses fresh random bits. Categorical choices with rational probabilities are made from fair bits by integer rejection, which uses $O(1)$ expected bits and operations because the probabilities come from a finite set.
+
+\paragraph{The root.} If $v$ is pinned, output $\tau(v)$. If the root of $T$ is settled with ratio $0$, output $0$. Otherwise let $\nu_1,\dots,\nu_d$ be its free children, $d\le\Delta$, so that $\mu^\tau(\sigma_v=1)=\lambda/(\lambda+\prod_i(1+R_{\nu_i}))$. Put $M_0=\lambda+\prod_i(1+u_{\nu_i})$ and repeat: with probability $\lambda/M_0$ output $1$; otherwise call $\nsc{Coin}(\nu_i)$ once for each $i$, obtaining bits $z_i$, put $\zeta_i=l_{\nu_i}+W_{\nu_i}z_i$, and output $0$ with probability $\prod_i(1+\zeta_i)/(M_0-\lambda)$, ending the round otherwise.
+
+\begin{proof}[Proof of Theorem~\ref{thm:main}]
+\emph{Exactness.} We show by induction on the height of the subtree of $\nu$ in the finite tree $T$ that every call to $\nsc{Coin}(\nu)$ terminates almost surely and returns a bit of mean $p_\nu=(R_\nu-l_\nu)/W_\nu$, independent of everything before the call. If $\nu$ has no free children, then $H\equiv1$, $B=p_\nu$ and $C=1-p_\nu$, both in $[0,1]$ by Lemma~\ref{lem:contain}, and the race returns $1$ with probability $p_\nu$. Otherwise the children satisfy the claim by induction, Lemma~\ref{lem:contain} and Lemma~\ref{lem:tables} give $b^*,c^*\ge0$, and Lemma~\ref{lem:race} applies with $p_i=p_{\nu_i}$; it returns $1$ with probability $B(p)/H(p)=(F(R_{\nu_1},\dots,R_{\nu_d})-l_\nu)/W_\nu=p_\nu$. At the root, $E\,\zeta_i=R_{\nu_i}$ and the $\zeta_i$ are independent, so $E\prod_i(1+\zeta_i)=\prod_i(1+R_{\nu_i})$ by multi-affinity. A round therefore outputs $1$ with probability $\lambda/M_0$ and $0$ with probability $\prod_i(1+R_{\nu_i})/M_0$. The output is $1$ with probability $\lambda/(\lambda+\prod_i(1+R_{\nu_i}))$, as required, and the round probabilities are valid because $\prod_i(1+\zeta_i)\le M_0-\lambda$.
+
+\emph{Expected work.} Call the calls to \nsc{Coin} made by the root procedure generation $1$, and the calls made directly by a generation-$j$ call generation $j+1$. A generation-$j$ call is at a node of depth $j$. Each root round returns with probability at least $(\lambda+1)/M_0$, so the root makes at most $C_0=\Delta M_0/(\lambda+1)$ calls in expectation, and $M_0\le\lambda+(1+3M)^\Delta$. Let $G_j$ be the number of generation-$j$ calls. Given everything that happened before a call to $\nsc{Coin}(\nu)$ starts, the call and all calls it causes are distributed as a fresh call at $\nu$; by Lemma~\ref{lem:race}, the exactness just proved and Lemmas~\ref{lem:tables} and~\ref{lem:contain}, it makes at most $q$ direct calls in expectation. Enumerating calls in the order they start and conditioning on the history at each start gives $E\,G_{j+1}\le q\,E\,G_j$, so $E\,G_j\le C_0q^{j-1}$.
+
+A call at depth $j$ does, besides its subcalls, the following work: listing the free children and computing the centres, which inspects $O(\Delta^{h+3})$ nodes at depth at most $j+h+3$ at cost $O(j+h+4)$ each; forming at most $2^{\Delta-1}+1$ table entries over a finite set of rationals; and running rounds. A round costs $O(1)$ apart from its subcalls, and the number of rounds has mean $K/H\le K$, which is bounded because the tables range over a finite set. By the same conditioning, the expected work of a depth-$j$ call apart from its subcalls is at most $C_1(j+1)$ with $C_1$ depending on $\Delta$ and $\lambda$. The expected total work is therefore at most
+\[
+O(1)+\sum_{j\ge1}C_0q^{j-1}C_1(j+1)<\infty,
+\]
+a bound depending only on $\Delta$ and $\lambda$.
+\end{proof}
+
+\section{Counting}\label{sec:count}
+
+Chen, Chen, Liu and Zhang \cite[Definition~2.2]{CCLZ} call an algorithm a perfect marginal sampler if, given the parameters and a vertex $u$, and given an oracle that lists the neighbours of a vertex and an oracle that returns the pinned spin of a vertex or reports that it is unpinned, it outputs a spin distributed exactly as the conditional marginal of $u$. Their Theorem~1.4 \cite{CCLZ} states that if the hard-core model with activity $0<\lambda\le(1-4\delta)\lc$ has a perfect marginal sampler running in expected time $O(1)$ on graphs of maximum degree $\Delta$, then the partition function of $n$-vertex graphs of maximum degree $\Delta$ has a randomized approximation scheme with expected running time $\tilde O(n^{2-x}\varepsilon^{-2(1-x)})$, with $x$ as in Corollary~\ref{cor:count}; here $\tilde O$ hides factors polylogarithmic in $n$ \cite[proof of Theorem~3.1]{CCLZ}. The sampler is called at the same activity $\lambda$, on pinned graphs of maximum degree $\Delta$ built by the reduction, through these two oracles.
+
+\begin{proof}[Proof of Corollary~\ref{cor:count}]
+The algorithm of Theorem~\ref{thm:main} uses $G$ and $\tau$ only through the two oracles of \cite[Definition~2.2]{CCLZ}: the neighbour lists, in a fixed order, give the self-avoiding-walk tree and its cycle-closing pins, and the pinning oracle gives the remaining pins. Its expected number of word operations and oracle queries is bounded in terms of $\Delta$ and $\lambda$ alone, on every graph of maximum degree $\Delta$ and every feasible pinning. So it is a perfect marginal sampler with expected time $O(1)$ in the sense of \cite[Theorem~1.4]{CCLZ}, and the corollary is that theorem.
+\end{proof}
+
+\section*{Acknowledgments and funding}
+
+This work was done by multiple AI agents, Claude (Anthropic) and Codex (OpenAI), connected to Math
+Brain~\cite{MathBrainRepo} and working together inside the Brain framework~\cite{BrainFramework}, a shared, persistent
+memory in which the agents record claims, proofs, failed attempts and methods, retrieve one another's results,
+coordinate who works on what, and audit each other's work. For more on the Brain and Math Brain, see the Math Brain
+paper~\cite{MathBrainPaper}, the Math Brain repository~\cite{MathBrainRepo} and the Brain framework
+repository~\cite{BrainFramework}.
+
+The research presented in this paper was supported by the European Research Council (ERC) under the European
+Union's Horizon Europe research and innovation programme (grant agreement No.\ 101041711), by the Simons Foundation
+(as part of the Collaboration on the Mathematical and Scientific Foundations of Deep Learning), by Heights Labs, by
+Convex Nexus Capital, and by the Israel Science Foundation (grants 2258/19 and 4101/25).
+
+\section*{Code and data availability}
+
+The paper uses no data and no code.
+
+\section*{Declaration of competing interest}
+
+The author holds equity in Heights Labs and Convex Nexus Capital and has a management role at Convex Nexus Capital.
+
+\section*{Declaration of generative AI and AI-assisted technologies}
+
+This paper is part of a broader research project on proving open problems with AI systems. The arguments were developed
+with AI systems (OpenAI Codex and Anthropic Claude agents), which also drafted the text. The question is posed by Chen,
+Chen, Liu and Zhang \cite{CCLZ}, whose Theorem~1.4 reduces approximate counting to perfect marginal sampling. The
+self-avoiding-walk tree is due to Weitz \cite{W06} and the potential to Li, Lu and Yin \cite{LLY}. The author directed
+the work and is responsible for the content of the paper and for decisions concerning its dissemination.
+
+\appendix
+\section{Notation}
+
+Symbols used only inside one proof are defined there and are not listed.
+
+\begin{center}
+\begin{tabular}{@{}lp{0.5\textwidth}l@{}}
+\toprule
+Symbol & Meaning & First appears\\
+\midrule
+$\Delta$ & maximum degree, $\Delta\ge3$ & Section~\ref{sec:intro}\\
+$\lambda$ & activity of the hard-core model, rational & Section~\ref{sec:intro}\\
+$\lc$ & uniqueness threshold $(\Delta-1)^{\Delta-1}/(\Delta-2)^{\Delta}$ of the infinite $\Delta$-regular tree & Section~\ref{sec:intro}\\
+$n$ & number of vertices of the graph & Section~\ref{sec:intro}\\
+$\delta$, $x$, $\varepsilon$ & gap below $\lc$, exponent and accuracy in Corollary~\ref{cor:count} & Corollary~\ref{cor:count}\\
+$\tilde O$ & $O$ up to factors polylogarithmic in $n$ & Corollary~\ref{cor:count}\\
+$G=(V,E)$ & finite graph of maximum degree $\Delta$ & Section~\ref{sec:intro}\\
+$\sigma$ & independent set, identified with its indicator & Section~\ref{sec:intro}\\
+$\tau$ & feasible partial assignment & Section~\ref{sec:intro}\\
+$\Lambda$ & the set of vertices $\tau$ pins & Section~\ref{sec:prelim}\\
+$X_v$ & output of the sampler of Theorem~\ref{thm:main} & Section~\ref{sec:intro}\\
+$\mu^\tau$ & hard-core measure conditioned on agreement with $\tau$ & Section~\ref{sec:prelim}\\
+$R_v$, $R_\nu$ & ratio $\mu^\tau(\sigma_v=1)/\mu^\tau(\sigma_v=0)$ at a vertex; ratio at a tree node & Section~\ref{sec:intro}\\
+$T$ & tree of self-avoiding walks from $v$ & Section~\ref{sec:prelim}\\
+$\nu$, $\nu_1,\dots,\nu_d$ & free node of $T$ and its free children & Section~\ref{sec:intro}\\
+$F$ & tree update $\lambda\prod_i(1+r_i)^{-1}$ & Section~\ref{sec:prelim}\\
+$\Phi$, $w$, $\psi$ & derivative of the Li--Lu--Yin coordinate, the weight $1/\Phi$, and $\int_0^r\Phi$ & Section~\ref{sec:contract}\\
+$\alpha_d$ & derivative of the update measured in the potential & Section~\ref{sec:intro}\\
+$\rho$ & contraction constant of Lemma~\ref{lem:contract}, $\rho<1$ & Section~\ref{sec:intro}\\
+$m$, $M$ & bounds of the range of ratios of free nodes & Section~\ref{sec:contract}\\
+$h$, $D$, $R'_\nu$ & truncation depth, its error constant, and the truncated value & Lemma~\ref{lem:trunc}\\
+$B$, $C$, $H$ & multi-affine polynomials with $H=B+C$ & Section~\ref{sec:race}\\
+$k_S$, $b^*$, $c^*$, $K$ & weights and constants of the rejection step & Section~\ref{sec:race}\\
+$I_\nu=[l_\nu,u_\nu]$ & interval containing $R_\nu$ & Section~\ref{sec:intro}\\
+$W_\nu$ & length $u_\nu-l_\nu$ of $I_\nu$ & Section~\ref{sec:race}\\
+$p_i$, $y_i$ & probability returned at a child and the point $l_i+W_ip_i$ & Section~\ref{sec:race}\\
+$\eta$ & small rational parameter setting the interval widths & Section~\ref{sec:intro}\\
+$c_\nu$, $s_\nu$ & centre of $I_\nu$ and its half-width divided by $\eta$ & Section~\ref{sec:intro}\\
+$q$ & bound $(1+\rho)/2$ on the expected number of calls & Lemma~\ref{lem:contain}\\
+$\nsc{Coin}(\nu)$ & procedure returning $1$ with probability $(R_\nu-l_\nu)/W_\nu$ & Section~\ref{sec:intro}\\
+$A$ & product of the bits drawn in one round of the rejection step & Lemma~\ref{lem:race}\\
+$z_i$, $\zeta_i$ & bit returned by $\nsc{Coin}(\nu_i)$ at the root; the endpoint $l_{\nu_i}+W_{\nu_i}z_i$ of $I_{\nu_i}$ & Section~\ref{sec:sampler}\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{thebibliography}{9}
+\bibitem{AJ22} K.~Anand and M.~Jerrum, Perfect sampling in infinite spin systems via strong spatial mixing, \emph{SIAM J. Comput.} 51(4) (2022), 1280--1295. Numbering as in arXiv:2106.15992.
+\bibitem{AFFGW} K.~Anand, W.~Feng, G.~Freifeld, H.~Guo and J.~Wang, Approximate counting for spin systems in sub-quadratic time, \emph{TheoretiCS} 4 (2025), Article~3. Numbering as in arXiv:2306.14867v3.
+\bibitem{CCLZ} X.~Chen, Z.~Chen, K.~Liu and X.~Zhang, Subquadratic counting via perfect marginal sampling, arXiv:2604.02235 (2026).
+\bibitem{FGY} W.~Feng, H.~Guo and Y.~Yin, Perfect sampling from spatial mixing, arXiv:1907.06033 (2019).
+\bibitem{W06} D.~Weitz, Counting independent sets up to the tree threshold, in \emph{Proc. 38th Annual ACM Symposium on Theory of Computing (STOC)}, 2006, 140--149. Numbering as in the full version of 16 March 2006.
+\bibitem{LLY} L.~Li, P.~Lu and Y.~Yin, Correlation decay up to uniqueness in spin systems, in \emph{Proc. 24th ACM-SIAM Symposium on Discrete Algorithms (SODA)}, 2013, 67--84. Numbering as in arXiv:1111.7064v3.
+\bibitem{MathBrainRepo} Y.~Shmalo, \emph{Math Brain: public snapshot, code and tests}, 2026, \url{https://github.com/yspennstate/math-brain-public/tree/8c9a6bd478c4ec4082347151b7ae16db50c917dd}.
+\bibitem{MathBrainPaper} Y.~Shmalo, \emph{Math Brain: shared, auditable memory for multi-agent mathematical research}, October 2026, doi:10.5281/zenodo.24150837, \url{https://github.com/yspennstate/math-brain-public/tree/8c9a6bd478c4ec4082347151b7ae16db50c917dd/papers/math-brain-2026-10-24}.
+\bibitem{BrainFramework} Y.~Shmalo, \emph{Brain Framework}, public software repository, 2026, \url{https://github.com/yspennstate/brain-framework-public/tree/5629e644cdd510173ae97e9aa92642dabd22dc57}.
+\end{thebibliography}
+\end{document}
